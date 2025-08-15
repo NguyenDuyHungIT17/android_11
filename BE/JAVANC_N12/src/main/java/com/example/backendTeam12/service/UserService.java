@@ -17,6 +17,9 @@ public interface UserService {
     boolean existsByEmail(String email);
     void loginUser(String username, String password);
     List<User> searchUsersByUsername(String search);
-
     int percentNewUser();
+    String forgotPassword(String email) throws Exception;
+    void resetPassword(String token, String newPassword);
+    boolean validateResetToken(String token);
+    void changePassword(String password, long userId);
 } 

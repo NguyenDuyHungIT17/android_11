@@ -105,4 +105,39 @@ public class UserController {
        return userService.percentNewUser();
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) throws Exception {
+        String email = body.get("email");
+        String token = userService.forgotPassword(email);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Email đã được gửi!");
+        response.put("token", token); 
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token,
+                                                @RequestParam String newPassword) {
+        try {
+            userService.resetPassword(token, newPassword);
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestParam String password,
+                                                 @RequestParam long userId) {
+        try {
+            userService.changePassword(password, userId);
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 } 

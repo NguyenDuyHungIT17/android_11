@@ -1,0 +1,80 @@
+//Room
+createRoom:
+    {
+    "roomName": "Deluxe Room",
+    "roomType": 1,
+    "price": 150.00,
+    "status": 1,
+    "homestay": {
+        "homestayId": 1
+    } 
+}
+//user
+{
+    "userName": "testuser",
+  "password": "testpass123",
+  "email": "testuser@example.com",
+  "phoneNumber": "0987654321",
+  "fullName": "Test User",
+  "gender": 1,
+  "avatar": "avatar_test.png"
+}
+//review
+createReview
+{
+    "rate": 5,
+    "comment": "Great homestay, very clean and comfortable!",
+    "homestay": {
+        "homestayId": 1
+    },
+    "user": {
+        "userId": 1
+    }
+}
+
+/service
+createService:
+{
+  "serviceName": "Wi-Fi",
+  "description": "High-speed internet access",
+  "price": 10.00
+}
+
+//homestay
+  "name": "Sunset Homestay",
+  "description": "Cozy homestay with sea view",
+  "ward": "Phuoc My",
+  "district": "Son Tra",
+  "province": "Da Nang",
+  "owner": {
+    "userId": 1
+  }
+
+  //booking
+  create:
+  {
+  "checkInDate": "2025-06-06T12:00:00",
+  "checkOutDate": "2025-06-08T12:00:00",
+  "depositPrice": 100000,
+  "totalPrice": 300000,
+  "status": 1,
+  "user": {
+    "userId": 8
+  },
+  "rooms": [
+    { "roomId": 13 },
+    { "roomId": 14}
+  ]
+}
+
+  //daterange
+  endpoint:http://localhost:8080/api/bookings/date-range?startDate=2025-06-01T00:00:00&endDate=2025-06-30T23:59:596262
+
+  //lấy ra homestay với 5 thông tin 
+  http://localhost:8080/api/homestays/summary
+
+  // lấy ra hs vs 5 thông tin khi tìm theo địa chỉ
+  http://localhost:8080/api/homestays/summary/search/keyword?keyword= đà nẵng
+
+  // lấy ra homestay có sao đánh giá > 3
+  http://localhost:8080/api/reviews/getHomestayByHighRate
