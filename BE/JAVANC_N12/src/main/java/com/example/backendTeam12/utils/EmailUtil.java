@@ -19,9 +19,6 @@ public class EmailUtil {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.reset-password-url}")
-    private String resetPasswordUrl;
-
     @Value("${app.reset-token-expiration}")
     private int expirationMinutes;
 
@@ -30,20 +27,17 @@ public class EmailUtil {
         this.mailSender = mailSender;
     }
 
-    public void sendResetPasswordEmail(String to, String token, String userName) throws MessagingException, IOException {
-        
-        String resetLink = resetPasswordUrl + token;
-
-        
+    public void sendResetPasswordEmail(String to, String code, String userName) throws MessagingException, IOException {
+        // Load template
         InputStream is = new ClassPathResource("templates/reset-password.html").getInputStream();
         String template = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-        
-        String content = template.replace("${resetLink}", resetLink)
-                                 .replace("${expiration}", String.valueOf(expirationMinutes))
-                                 .replace("${username}", userName);
+        // Replace placeholders
+        String content = template.replace("${username}", userName)
+                                 .replace("${codeResetPassword}", code)
+                                 .replace("${expiration}", String.valueOf(expirationMinutes));
 
-        
+        // Send email
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
         helper.setTo(to);

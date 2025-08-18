@@ -19,7 +19,7 @@ public interface UserService {
     List<User> searchUsersByUsername(String search);
     int percentNewUser();
     String forgotPassword(String email) throws Exception;
-    void resetPassword(String token, String newPassword);
-    boolean validateResetToken(String token);
+    void resetPassword(String email, String code, String newPassword);
+    boolean verifyResetCode(String email, String code);
     void changePassword(String password, long userId);
 } 

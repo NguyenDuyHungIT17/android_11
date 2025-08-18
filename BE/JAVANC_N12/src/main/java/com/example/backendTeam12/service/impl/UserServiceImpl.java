@@ -5,13 +5,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.backendTeam12.model.TokenInfo;
+import com.example.backendTeam12.model.CodeInfo;
 import com.example.backendTeam12.model.User;
 import com.example.backendTeam12.repository.UserRepository;
 import com.example.backendTeam12.service.UserService;
@@ -21,8 +20,7 @@ import com.example.backendTeam12.utils.Validate;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final Map<String, TokenInfo> resetTokens = new ConcurrentHashMap<>();
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -31,6 +29,7 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(EmailUtil emailUtil) {
         this.emailUtil = emailUtil;
     }
+    private final Map<String, CodeInfo> resetCodes = new ConcurrentHashMap<>();
 
     @Override
     public User createUser(User user) {
@@ -144,52 +143,51 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
 
         
-        String token = UUID.randomUUID().toString();
-        LocalDateTime expiry = LocalDateTime.now().plusMinutes(15); // hết hạn sau 15 phút
-        resetTokens.put(token, new TokenInfo(email, expiry));
+        String code = Generate.generateCode();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(15);
 
-        String userName = user.getFullName();
-        emailUtil.sendResetPasswordEmail(email, token, userName);
-        return token;
+        resetCodes.put(email, new CodeInfo(code, expiry));
+
+        String username = user.getUserName();
+        emailUtil.sendResetPasswordEmail(email, code, username);
+
+        return code;
     } 
 
     @Override
-    public boolean validateResetToken(String token) {
-        TokenInfo info = resetTokens.get(token);
-        if (info == null) {
-            return false; // token không tồn tại
-        }
-
-        if (LocalDateTime.now().isAfter(info.getExpiry())) {
-            resetTokens.remove(token); // xóa token đã hết hạn
+    public boolean verifyResetCode(String email, String code) {
+        CodeInfo info = resetCodes.get(email);
+        if (info == null || !info.getCode().equals(code)) {
             return false;
         }
 
+        if (LocalDateTime.now().isAfter(info.getExpiry())) {
+            resetCodes.remove(email); 
+            return false; 
+        }
         return true;
     }
 
     @Override
-    public void resetPassword(String token, String newPassword) {
-        TokenInfo info = resetTokens.get(token);
-        if (info == null || LocalDateTime.now().isAfter(info.getExpiry())) {
-            throw new RuntimeException("Token không hợp lệ hoặc đã hết hạn");
-        }
-
-        if (info.getExpiry().isBefore(LocalDateTime.now())) {
-            resetTokens.remove(token);
-            throw new RuntimeException("Token đã hết hạn");
+    public void resetPassword(String email, String code, String newPassword) {
+        CodeInfo codeInfo = resetCodes.get(email);
+        if (codeInfo == null || LocalDateTime.now().isAfter(codeInfo.getExpiry())) {
+            throw new RuntimeException("Code không hợp lệ hoặc đã hết hạn");
         }
         
-        User user = getUserByEmail(info.getEmail())
-                .orElseThrow(() -> new RuntimeException("User không tồn tại"));
+        if (!codeInfo.getCode().equals(code)) {
+            throw new RuntimeException("Mã xác nhận không đúng");
+        }
 
-        // Hash password mới
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        
         user.setPassword(Generate.hashPassword(newPassword));
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         // Xóa token sau khi dùng
-        resetTokens.remove(token);
+        resetCodes.remove(email);
     }
 
     @Override

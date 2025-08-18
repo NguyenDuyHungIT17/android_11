@@ -108,21 +108,22 @@ public class UserController {
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> body) throws Exception {
         String email = body.get("email");
-        String token = userService.forgotPassword(email);
+        String code = userService.forgotPassword(email);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Email đã được gửi!");
-        response.put("token", token); 
+        response.put("code", code); 
 
         return ResponseEntity.ok(response);
     }
 
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String token,
+    public ResponseEntity<String> resetPassword(@RequestParam String code,
+                                                @RequestParam String email,
                                                 @RequestParam String newPassword) {
         try {
-            userService.resetPassword(token, newPassword);
+            userService.resetPassword(email, code, newPassword);
             return ResponseEntity.ok("Đổi mật khẩu thành công");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
